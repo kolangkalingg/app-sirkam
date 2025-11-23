@@ -1,0 +1,16 @@
+[
+    {
+        "ReportID": "SRK-2025-001",
+        "Nama": "risky ramadani",
+        "NIM": "04251079",
+        "Prodi": "teknik elektro",
+        "Tanggal": "2025-10-11",
+        "Jenis": "Barang Hilang",
+        "Detail": "botol minum saya berbentuk lingkaran warna merah",
+        "Status": "Menunggu",
+        "Urgency": "Rendah",
+        "CreatedAt": "2025-11-24 06:43:27",
+        "UpdatedAt": "2025-11-24 06:43:27",
+        "IsAnonymous": false
+    }
+]
