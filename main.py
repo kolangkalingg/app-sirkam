@@ -303,3 +303,5 @@ if __name__ == "__main__":
     root = ttk.Window(themename="minty")
     app = SIRKAMApp(root)
     root.mainloop()
+    
+    

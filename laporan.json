@@ -28,20 +28,6 @@
         "IsAnonymous": false
     },
     {
-        "ReportID": "SRK-2025-004",
-        "Nama": "ale",
-        "NIM": "04251067",
-        "Prodi": "teknik elektro",
-        "Tanggal": "2025-11-24",
-        "Jenis": "Barang Hilang",
-        "Detail": "hp hilang di gedung f warna ijo",
-        "Status": "Menunggu",
-        "Urgency": "Sedang",
-        "CreatedAt": "2025-11-24 11:13:43",
-        "UpdatedAt": "2025-11-24 11:14:45",
-        "IsAnonymous": false
-    },
-    {
         "ReportID": "SRK-2025-005",
         "Nama": "khinarrrrrrrrr",
         "NIM": "04251027",
