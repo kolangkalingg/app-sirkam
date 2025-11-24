@@ -9,8 +9,8 @@ from PIL import ImageTk
 import datetime
 import sys
 from reports_manager import (
-    create_report, get_all_reports, find_reports,
-    update_report_status, update_report, delete_report, sort_reports_by
+    buat_laporan, semua_laporan, cari_laporan,
+    perbarui_status_laporan, perbarui_laporan, hapus_laporan, urutkan_laporan_berdasarkan
 )
 
 APP_WIDTH = 960
@@ -23,8 +23,8 @@ class SIRKAMApp:
         self.root.geometry(f"{APP_WIDTH}x{APP_HEIGHT}")
         self.root.resizable(False, False)
 
-        # gradient background like original
-        grad = self._create_gradient(APP_WIDTH, APP_HEIGHT, (240,248,255), (255,255,255))
+        # background gradien
+        grad = self._buat_gradien(APP_WIDTH, APP_HEIGHT, (240,248,255), (255,255,255))
         self.bg_image = ImageTk.PhotoImage(grad)
         self.canvas = tk.Canvas(self.root, width=APP_WIDTH, height=APP_HEIGHT, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
@@ -38,10 +38,10 @@ class SIRKAMApp:
         self.container = ttk.Frame(self.root)
         self.canvas.create_window(244,12,anchor="nw",window=self.container,width=APP_WIDTH-256,height=APP_HEIGHT-24)
 
-        self._build_sidebar()
-        self.show_home()
+        self.buat_sidebar()
+        self.tampilkan_beranda()
 
-    def _create_gradient(self,w,h,c1,c2):
+    def _buat_gradien(self,w,h,c1,c2):
         from PIL import Image
 
         img = Image.new("RGB",(w,h),c1)
@@ -54,30 +54,30 @@ class SIRKAMApp:
                 img.putpixel((x,y),(r,g,b))
         return img
 
-    def _build_sidebar(self):
+    def buat_sidebar(self):
         ttk.Label(self.sidebar, text="📋 SIRKAM", font=("Helvetica",16,"bold")).grid(row=0,column=0,pady=(12,18),padx=10)
         menu_items = [
-            ("🏠  Home", self.show_home),
-            ("➕  Tambah Laporan", self.show_add_report),
-            ("📄  Lihat Laporan", self.show_view_reports),
-            ("🔍  Cari Laporan", self.show_search_reports),
-            ("🔀  Urutkan Laporan", self.show_sort_reports),
+            ("🏠  Beranda", self.tampilkan_beranda),
+            ("➕  Tambah Laporan", self.tampilkan_tambah_laporan),
+            ("📄  Lihat Laporan", self.tampilkan_lihat_laporan),
+            ("🔍  Cari Laporan", self.tampilkan_cari_laporan),
+            ("🔀  Urutkan Laporan", self.tampilkan_urutkan_laporan),
             ("🚪  Keluar", self.keluar)
         ]
         for idx, (txt, cmd) in enumerate(menu_items, start=1):
             ttk.Button(self.sidebar, text=txt, command=cmd, bootstyle="secondary-outline").grid(row=idx, column=0, sticky="ew", pady=6, padx=10)
 
-    def clear_container(self):
+    def bersihkan_kontainer(self):
         for w in self.container.winfo_children():
             w.destroy()
 
-    def show_home(self):
-        self.clear_container()
+    def tampilkan_beranda(self):
+        self.bersihkan_kontainer()
         ttk.Label(self.container, text="🏠 Dashboard SIRKAM", font=("Helvetica",22,"bold"), foreground="#4A90E2").pack(pady=18)
-        reports = get_all_reports()
-        total = len(reports)
+        laporan = semua_laporan()
+        total = len(laporan)
         status_counts = {"Menunggu":0,"Diproses":0,"Selesai":0}
-        for r in reports:
+        for r in laporan:
             status_counts[r.get("Status","Menunggu")] = status_counts.get(r.get("Status","Menunggu"),0)+1
         frame = ttk.Frame(self.container,padding=12); frame.pack(fill="x", pady=6)
         ttk.Label(frame, text=f"Total Laporan: {total}", font=("Helvetica",14,"bold")).grid(row=0,column=0,sticky="w")
@@ -87,8 +87,8 @@ class SIRKAMApp:
         info = ttk.Frame(self.container,padding=12); info.pack(fill="x", pady=10)
         ttk.Label(info, text="Info: Gunakan menu di kiri untuk mengelola laporan.", font=("Helvetica",12)).pack()
 
-    def show_add_report(self):
-        self.clear_container()
+    def tampilkan_tambah_laporan(self):
+        self.bersihkan_kontainer()
         ttk.Label(self.container, text="➕ Tambah Laporan", font=("Helvetica",20,"bold"), foreground="#198754").pack(pady=14)
         wrapper = ttk.Frame(self.container, padding=12, style="info.TFrame")
         wrapper.pack(padx=12, pady=8, fill="x")
@@ -132,7 +132,7 @@ class SIRKAMApp:
                 return
             if not tanggal:
                 tanggal = datetime.date.today().strftime("%Y-%m-%d")
-            rid = create_report(nama, nim, prodi, tanggal, jenis, detail, urgency=urgency, is_anonymous=is_anon)
+            rid = buat_laporan(nama, nim, prodi, tanggal, jenis, detail, urgency=urgency, is_anonymous=is_anon)
             Messagebox.show_info("Berhasil", f"Laporan berhasil disimpan dengan ID {rid}")
             # clear
             self.nama_e.delete(0,"end"); self.nim_e.delete(0,"end"); self.prodi_e.delete(0,"end")
@@ -140,8 +140,8 @@ class SIRKAMApp:
 
         ttk.Button(form, text="💾 Simpan Laporan", bootstyle="success-outline", command=simpan).grid(row=8, column=1, sticky="e", pady=10)
 
-    def show_view_reports(self):
-        self.clear_container()
+    def tampilkan_lihat_laporan(self):
+        self.bersihkan_kontainer()
         ttk.Label(self.container, text="📄 Lihat Laporan", font=("Helvetica",20,"bold"), foreground="#0d6efd").pack(pady=12)
 
         # setup table
@@ -157,7 +157,7 @@ class SIRKAMApp:
         tbl.pack(fill="both", expand=True, padx=12, pady=6)
 
         # fill
-        for r in get_all_reports():
+        for r in semua_laporan():
             tbl.insert("", "end", values=(
                 r.get("ReportID"), r.get("Nama"), r.get("NIM") or "", r.get("Prodi"),
                 r.get("Tanggal"), r.get("Jenis"), r.get("Status"), r.get("Urgency")
@@ -176,7 +176,7 @@ class SIRKAMApp:
             top.geometry("520x420")
             top.resizable(False, False)
             # load full report
-            reps = [x for x in get_all_reports() if x.get("ReportID")==rid]
+            reps = [x for x in semua_laporan() if x.get("ReportID")==rid]
             if not reps: 
                 Messagebox.show_warning("Error","Data tidak ditemukan.")
                 top.destroy()
@@ -199,11 +199,11 @@ class SIRKAMApp:
                 choices = ["Menunggu","Diproses","Selesai"]
                 new = simpledialog.askstring("Update Status","Masukkan status baru (Menunggu/Diproses/Selesai):",parent=top)
                 if new and new in choices:
-                    ok = update_report_status(rid, new)
+                    ok = perbarui_status_laporan(rid, new)
                     if ok:
                         Messagebox.show_info("Sukses","Status diperbarui.")
                         top.destroy()
-                        self.show_view_reports()
+                        self.tampilkan_lihat_laporan()
                 else:
                     Messagebox.show_warning("Peringatan","Status tidak valid.")
 
@@ -211,18 +211,18 @@ class SIRKAMApp:
                 new_detail = simpledialog.askstring("Edit Detail","Masukkan detail baru:",initialvalue=rep.get("Detail",""),parent=top)
                 new_urg = simpledialog.askstring("Edit Urgency","Masukkan urgency (Rendah/Sedang/Tinggi):",initialvalue=rep.get("Urgency","Rendah"),parent=top)
                 if new_detail is not None and new_urg in ["Rendah","Sedang","Tinggi"]:
-                    update_report(rid, Detail=new_detail, Urgency=new_urg)
+                    perbarui_laporan(rid, Detail=new_detail, Urgency=new_urg)
                     Messagebox.show_info("Sukses","Laporan diperbarui.")
                     top.destroy()
-                    self.show_view_reports()
+                    self.tampilkan_lihat_laporan()
                 else:
                     Messagebox.show_warning("Peringatan","Data tidak valid atau dibatalkan.")
 
             def do_delete():
-                    if delete_report(rid):
+                    if hapus_laporan(rid):
                         Messagebox.show_info("Sukses","Laporan dihapus.")
                         top.destroy()
-                        self.show_view_reports()
+                        self.tampilkan_lihat_laporan()
                     else:
                         Messagebox.show_warning("Gagal","Gagal menghapus laporan.")
 
@@ -235,12 +235,12 @@ class SIRKAMApp:
 
         ttk.Button(self.container, text="🔍 Lihat Detail / Kelola", bootstyle="primary-outline", command=on_view).pack(pady=8)
 
-    def show_search_reports(self):
-        self.clear_container()
+    def tampilkan_cari_laporan(self):
+        self.bersihkan_kontainer()
         ttk.Label(self.container, text="🔍 Cari Laporan", font=("Helvetica",16)).pack(pady=8)
         frm = ttk.Frame(self.container); frm.pack(pady=6, padx=10, fill="x")
         kw = tkttk.Entry(frm, width=40); kw.pack(side="left", padx=(0,8))
-        ttk.Button(frm, text="Cari", bootstyle=PRIMARY, command=lambda: self._do_search(kw.get().strip(), tbl)).pack(side="left")
+        ttk.Button(frm, text="Cari", bootstyle=PRIMARY, command=lambda: self.lakukan_pencarian(kw.get().strip(), tbl)).pack(side="left")
         cols = ("ReportID","Nama","NIM","Prodi","Tanggal","Jenis","Status","Urgency")
         tbl = tkttk.Treeview(self.container, columns=cols, show="headings", height=16)
         for c in cols:
@@ -253,7 +253,7 @@ class SIRKAMApp:
         if not keyword:
             Messagebox.show_info("Info","Masukkan kata kunci pencarian.")
             return
-        res = find_reports(keyword)
+        res = cari_laporan(keyword)
         if not res:
             Messagebox.show_info("Hasil","Tidak ditemukan.")
             return
@@ -263,8 +263,11 @@ class SIRKAMApp:
                 r.get("Tanggal"), r.get("Jenis"), r.get("Status"), r.get("Urgency")
             ))
 
-    def show_sort_reports(self):
-        self.clear_container()
+    def lakukan_pencarian(self, keyword, table_widget):
+        return self._do_search(keyword, table_widget)
+
+    def tampilkan_urutkan_laporan(self):
+        self.bersihkan_kontainer()
         ttk.Label(self.container, text="🔀 Urutkan Laporan", font=("Helvetica",16)).pack(pady=8)
         frm = ttk.Frame(self.container); frm.pack(pady=6, padx=10, fill="x")
         ttk.Label(frm, text="Pilih metode urut:").pack(side="left", padx=(0,8))
@@ -279,7 +282,7 @@ class SIRKAMApp:
             if not method:
                 Messagebox.show_warning("Peringatan","Pilih metode urut terlebih dahulu.")
                 return
-            rows = sort_reports_by(method)
+            rows = urutkan_laporan_berdasarkan(method)
             tbl.delete(*tbl.get_children())
             for r in rows:
                 tbl.insert("", "end", values=(
