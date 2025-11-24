@@ -12,5 +12,47 @@
         "CreatedAt": "2025-11-24 06:43:27",
         "UpdatedAt": "2025-11-24 06:43:27",
         "IsAnonymous": false
+    },
+    {
+        "ReportID": "SRK-2025-002",
+        "Nama": "fadil",
+        "NIM": "04251097",
+        "Prodi": "teknik elektro",
+        "Tanggal": "2025-11-18",
+        "Jenis": "Keluhan Fasilitas",
+        "Detail": "jendelanya pecah gedung b",
+        "Status": "Menunggu",
+        "Urgency": "Rendah",
+        "CreatedAt": "2025-11-24 11:06:44",
+        "UpdatedAt": "2025-11-24 11:06:44",
+        "IsAnonymous": false
+    },
+    {
+        "ReportID": "SRK-2025-004",
+        "Nama": "ale",
+        "NIM": "04251067",
+        "Prodi": "teknik elektro",
+        "Tanggal": "2025-11-24",
+        "Jenis": "Barang Hilang",
+        "Detail": "hp hilang di gedung f warna ijo",
+        "Status": "Menunggu",
+        "Urgency": "Sedang",
+        "CreatedAt": "2025-11-24 11:13:43",
+        "UpdatedAt": "2025-11-24 11:14:45",
+        "IsAnonymous": false
+    },
+    {
+        "ReportID": "SRK-2025-005",
+        "Nama": "khinarrrrrrrrr",
+        "NIM": "04251027",
+        "Prodi": "tmm",
+        "Tanggal": "2025-11-24",
+        "Jenis": "Barang Hilang",
+        "Detail": "blablablablbalbalbla sepatuku hilang di labter 3",
+        "Status": "Menunggu",
+        "Urgency": "Sedang",
+        "CreatedAt": "2025-11-24 11:19:50",
+        "UpdatedAt": "2025-11-24 11:19:50",
+        "IsAnonymous": false
     }
 ]

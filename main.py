@@ -5,11 +5,9 @@ from ttkbootstrap.constants import *
 import tkinter as tk
 from tkinter import ttk as tkttk
 from tkinter import simpledialog
-from tkinter import filedialog
-from PIL import Image, ImageTk
-import winsound
+from PIL import ImageTk
 import datetime
-
+import sys
 from reports_manager import (
     create_report, get_all_reports, find_reports,
     update_report_status, update_report, delete_report, sort_reports_by
@@ -45,6 +43,7 @@ class SIRKAMApp:
 
     def _create_gradient(self,w,h,c1,c2):
         from PIL import Image
+
         img = Image.new("RGB",(w,h),c1)
         for y in range(h):
             t = y/(h-1)
@@ -209,7 +208,6 @@ class SIRKAMApp:
                     Messagebox.show_warning("Peringatan","Status tidak valid.")
 
             def do_update():
-                # allow edit detail and urgency (simple)
                 new_detail = simpledialog.askstring("Edit Detail","Masukkan detail baru:",initialvalue=rep.get("Detail",""),parent=top)
                 new_urg = simpledialog.askstring("Edit Urgency","Masukkan urgency (Rendah/Sedang/Tinggi):",initialvalue=rep.get("Urgency","Rendah"),parent=top)
                 if new_detail is not None and new_urg in ["Rendah","Sedang","Tinggi"]:
@@ -221,8 +219,6 @@ class SIRKAMApp:
                     Messagebox.show_warning("Peringatan","Data tidak valid atau dibatalkan.")
 
             def do_delete():
-                confirm = Messagebox.ask_yesno("Konfirmasi","Yakin ingin menghapus laporan ini?")
-                if confirm:
                     if delete_report(rid):
                         Messagebox.show_info("Sukses","Laporan dihapus.")
                         top.destroy()
@@ -234,7 +230,8 @@ class SIRKAMApp:
             btnfrm.pack(pady=6)
             ttk.Button(btnfrm, text="🔁 Update Status", bootstyle="warning-outline", command=do_update_status).grid(row=0,column=0,padx=6)
             ttk.Button(btnfrm, text="✏️ Edit Laporan", bootstyle="primary-outline", command=do_update).grid(row=0,column=1,padx=6)
-            ttk.Button(btnfrm, text="🗑 Hapus Laporan", bootstyle="danger-outline", command=do_delete).grid(row=0,column=2,padx=6)
+            ttk.Button(btnfrm, text="🗑 Hapus Laporan", bootstyle="danger-outline", command=
+                       do_delete).grid(row=0,column=2,padx=6)
 
         ttk.Button(self.container, text="🔍 Lihat Detail / Kelola", bootstyle="primary-outline", command=on_view).pack(pady=8)
 
@@ -292,8 +289,12 @@ class SIRKAMApp:
         ttk.Button(frm, text="Urutkan", bootstyle=PRIMARY, command=do_sort).pack(side="left", padx=6)
 
     def keluar(self):
-        if Messagebox.show_question("Konfirmasi","Yakin ingin keluar?",buttons=["yes","no"])=="yes":
-            self.root.destroy()
+            try:
+                self.root.quit()
+                self.root.destroy()
+            except Exception as e:
+                print("Error saat keluar:", e)
+                sys.exit(0)
 
 if __name__ == "__main__":
     root = ttk.Window(themename="minty")
