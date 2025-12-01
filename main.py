@@ -19,7 +19,7 @@ APP_HEIGHT = 640
 class SIRKAMApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("SIRKAM - Sistem Informasi & Report Kampus")
+        self.root.title("SIRKAM - Sistem Informasi & Laporan Kampus")
         self.root.geometry(f"{APP_WIDTH}x{APP_HEIGHT}")
         self.root.resizable(False, False)
 
@@ -96,7 +96,7 @@ class SIRKAMApp:
         form.pack()
 
         # form fields
-        labels = ["Nama Pelapor", "NIM", "Program Studi", "Tanggal (YYYY-MM-DD) [Kosong = hari ini]", "Jenis Laporan", "Detail Laporan", "Urgency"]
+        labels = ["Nama Pelapor", "NIM", "Program Studi", "Tanggal (YYYY-MM-DD) [Kosong = hari ini]", "Jenis Laporan", "Detail Laporan", "Urgensi"]
         for i,txt in enumerate(labels):
             ttk.Label(form, text=txt, font=("Helvetica",11,"bold")).grid(row=i, column=0, sticky="w", pady=6)
         self.nama_e = ttk.Entry(form, width=50); self.nim_e = ttk.Entry(form, width=50)
@@ -146,13 +146,23 @@ class SIRKAMApp:
 
         # setup table
         cols = ("ReportID","Nama","NIM","Prodi","Tanggal","Jenis","Status","Urgency")
+        header_terjemahan = {
+            "ReportID": "ID Laporan",
+            "Nama": "Nama",
+            "NIM": "NIM",
+            "Prodi": "Program Studi",
+            "Tanggal": "Tanggal",
+            "Jenis": "Jenis",
+            "Status": "Status",
+            "Urgency": "Urgensi",
+        }
         style = ttk.Style()
         style.configure("Treeview.Heading", font=("Helvetica",11,"bold"))
         style.configure("Treeview", font=("Helvetica",10), rowheight=26)
 
         tbl = tkttk.Treeview(self.container, columns=cols, show="headings", height=16)
         for c in cols:
-            tbl.heading(c, text=c)
+            tbl.heading(c, text=header_terjemahan.get(c, c))
             tbl.column(c, anchor="center", width=110)
         tbl.pack(fill="both", expand=True, padx=12, pady=6)
 
@@ -178,7 +188,7 @@ class SIRKAMApp:
             # load full report
             reps = [x for x in semua_laporan() if x.get("ReportID")==rid]
             if not reps: 
-                Messagebox.show_warning("Error","Data tidak ditemukan.")
+                Messagebox.show_warning("Kesalahan","Data tidak ditemukan.")
                 top.destroy()
                 return
             rep = reps[0]
@@ -197,7 +207,7 @@ class SIRKAMApp:
             # update status
             def do_update_status():
                 choices = ["Menunggu","Diproses","Selesai"]
-                new = simpledialog.askstring("Update Status","Masukkan status baru (Menunggu/Diproses/Selesai):",parent=top)
+                new = simpledialog.askstring("Perbarui Status","Masukkan status baru (Menunggu/Diproses/Selesai):",parent=top)
                 if new and new in choices:
                     ok = perbarui_status_laporan(rid, new)
                     if ok:
@@ -209,7 +219,7 @@ class SIRKAMApp:
 
             def do_update():
                 new_detail = simpledialog.askstring("Edit Detail","Masukkan detail baru:",initialvalue=rep.get("Detail",""),parent=top)
-                new_urg = simpledialog.askstring("Edit Urgency","Masukkan urgency (Rendah/Sedang/Tinggi):",initialvalue=rep.get("Urgency","Rendah"),parent=top)
+                new_urg = simpledialog.askstring("Perbarui Urgensi","Masukkan urgensi (Rendah/Sedang/Tinggi):",initialvalue=rep.get("Urgency","Rendah"),parent=top)
                 if new_detail is not None and new_urg in ["Rendah","Sedang","Tinggi"]:
                     perbarui_laporan(rid, Detail=new_detail, Urgency=new_urg)
                     Messagebox.show_info("Sukses","Laporan diperbarui.")
@@ -228,7 +238,7 @@ class SIRKAMApp:
 
             btnfrm = ttk.Frame(top)
             btnfrm.pack(pady=6)
-            ttk.Button(btnfrm, text="🔁 Update Status", bootstyle="warning-outline", command=do_update_status).grid(row=0,column=0,padx=6)
+            ttk.Button(btnfrm, text="🔁 Perbarui Status", bootstyle="warning-outline", command=do_update_status).grid(row=0,column=0,padx=6)
             ttk.Button(btnfrm, text="✏️ Edit Laporan", bootstyle="primary-outline", command=do_update).grid(row=0,column=1,padx=6)
             ttk.Button(btnfrm, text="🗑 Hapus Laporan", bootstyle="danger-outline", command=
                        do_delete).grid(row=0,column=2,padx=6)
@@ -242,9 +252,19 @@ class SIRKAMApp:
         kw = tkttk.Entry(frm, width=40); kw.pack(side="left", padx=(0,8))
         ttk.Button(frm, text="Cari", bootstyle=PRIMARY, command=lambda: self.lakukan_pencarian(kw.get().strip(), tbl)).pack(side="left")
         cols = ("ReportID","Nama","NIM","Prodi","Tanggal","Jenis","Status","Urgency")
+        header_terjemahan = {
+            "ReportID": "ID Laporan",
+            "Nama": "Nama",
+            "NIM": "NIM",
+            "Prodi": "Program Studi",
+            "Tanggal": "Tanggal",
+            "Jenis": "Jenis",
+            "Status": "Status",
+            "Urgency": "Urgensi",
+        }
         tbl = tkttk.Treeview(self.container, columns=cols, show="headings", height=16)
         for c in cols:
-            tbl.heading(c, text=c); tbl.column(c, width=110, anchor="center")
+            tbl.heading(c, text=header_terjemahan.get(c, c)); tbl.column(c, width=110, anchor="center")
         tbl.pack(fill="both", expand=True, padx=10, pady=6)
 
     def _do_search(self, keyword, table_widget):
@@ -273,9 +293,19 @@ class SIRKAMApp:
         ttk.Label(frm, text="Pilih metode urut:").pack(side="left", padx=(0,8))
         cmb = ttk.Combobox(frm, values=["Tanggal","Nama","Status","Urgency"], state="readonly"); cmb.pack(side="left", padx=6)
         tblcols = ("ReportID","Nama","NIM","Prodi","Tanggal","Jenis","Status","Urgency")
+        header_terjemahan = {
+            "ReportID": "ID Laporan",
+            "Nama": "Nama",
+            "NIM": "NIM",
+            "Prodi": "Program Studi",
+            "Tanggal": "Tanggal",
+            "Jenis": "Jenis",
+            "Status": "Status",
+            "Urgency": "Urgensi",
+        }
         tbl = tkttk.Treeview(self.container, columns=tblcols, show="headings", height=16)
         for c in tblcols:
-            tbl.heading(c, text=c); tbl.column(c, width=110, anchor="center")
+            tbl.heading(c, text=header_terjemahan.get(c, c)); tbl.column(c, width=110, anchor="center")
         tbl.pack(fill="both", expand=True, padx=10, pady=6)
         def do_sort():
             method = cmb.get()

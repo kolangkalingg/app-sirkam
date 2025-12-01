@@ -2,6 +2,7 @@
 import os
 import json
 from datetime import datetime
+import re
 
 BERKAS_DATA = "laporan.json"
 
@@ -37,6 +38,53 @@ def buat_id_laporan(prefix="SRK"):
     idx = len(sama_tahun) + 1
     return f"{prefix}-{tahun}-{idx:03d}"
 
+
+# Algoritma sorting dan searching kustom (sesuai permintaan):
+def selection_sort(daftar, key_func=lambda x: x, reverse=False):
+    """
+    Selection sort sederhana yang mengembalikan salinan daftar yang diurutkan.
+    - `key_func` : fungsi yang menerima elemen dan mengembalikan nilai pembanding.
+    - `reverse` : jika True, urutkan menurun.
+    """
+    arr = daftar[:]  # salinan sehingga tidak mengubah daftar asli
+    n = len(arr)
+    for i in range(n):
+        sel = i
+        for j in range(i + 1, n):
+            a = key_func(arr[j])
+            b = key_func(arr[sel])
+            if reverse:
+                if a > b:
+                    sel = j
+            else:
+                if a < b:
+                    sel = j
+        if sel != i:
+            arr[i], arr[sel] = arr[sel], arr[i]
+    return arr
+
+
+def binary_search_exact(daftar, field, target):
+    """
+    Binary search untuk nilai exact pada `field`.
+    Mengasumsikan `daftar` sudah diurutkan menaik berdasarkan `field`.
+    Mengembalikan index jika ditemukan, atau -1 jika tidak.
+    Perbandingan case-insensitive.
+    """
+    lo = 0
+    hi = len(daftar) - 1
+    t = (target or "").lower()
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        val = (daftar[mid].get(field) or "").lower()
+        if val == t:
+            return mid
+        if val < t:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1
+
 # Operasi CRUD
 def buat_laporan(nama, nim, prodi, tanggal, jenis, detail, urgency="Rendah", is_anonymous=False):
     daftar = muat_laporan()
@@ -65,28 +113,47 @@ def semua_laporan(order_by=None):
     if order_by:
         key = order_by
         if key == "Tanggal":
-            daftar.sort(key=lambda r: r.get("CreatedAt", ""), reverse=True)
+            # urutkan berdasarkan CreatedAt menurun (paling baru dulu)
+            daftar = selection_sort(daftar, key_func=lambda r: r.get("CreatedAt", ""), reverse=True)
         elif key == "Nama":
-            daftar.sort(key=lambda r: (r.get("Nama") or "").lower())
+            daftar = selection_sort(daftar, key_func=lambda r: (r.get("Nama") or "").lower())
         elif key == "Status":
-            daftar.sort(key=lambda r: r.get("Status", ""))
+            daftar = selection_sort(daftar, key_func=lambda r: r.get("Status", ""))
         elif key == "Urgency":
             urutan = {"Tinggi": 0, "Sedang": 1, "Rendah": 2}
-            daftar.sort(key=lambda r: urutan.get(r.get("Urgency", "Rendah"), 2))
+            daftar = selection_sort(daftar, key_func=lambda r: urutan.get(r.get("Urgency", "Rendah"), 2))
     return daftar
 
 def cari_laporan(keyword):
-    kw = (keyword or "").strip().lower()
+    kw = (keyword or "").strip()
     if not kw:
         return []
     daftar = muat_laporan()
+
+    # Jika keyword berbentuk ReportID exact (contoh: SRK-2025-001), gunakan binary search
+    if re.match(r'^[A-Za-z]+-\d{4}-\d+$', kw):
+        sorted_by_id = selection_sort(daftar, key_func=lambda r: (r.get("ReportID") or "").lower())
+        idx = binary_search_exact(sorted_by_id, "ReportID", kw)
+        if idx != -1:
+            return [sorted_by_id[idx]]
+
+    # Jika keyword adalah angka (mungkin NIM), coba binary search pada NIM
+    if kw.isdigit():
+        daftar_nim = [r for r in daftar if r.get("NIM")]
+        sorted_by_nim = selection_sort(daftar_nim, key_func=lambda r: (r.get("NIM") or "").lower())
+        idx = binary_search_exact(sorted_by_nim, "NIM", kw)
+        if idx != -1:
+            return [sorted_by_nim[idx]]
+
+    # Fallback: pencarian substring linear (sebagian besar use-case pencarian kata kunci)
     hasil = []
+    lower_kw = kw.lower()
     for r in daftar:
-        if (r.get("ReportID", "").lower().find(kw) != -1
-            or (r.get("Nama") and kw in r.get("Nama", "").lower())
-            or (r.get("NIM") and kw in (r.get("NIM") or "").lower())
-            or (r.get("Jenis") and kw in r.get("Jenis", "").lower())
-            or (r.get("Detail") and kw in r.get("Detail", "").lower())):
+        if (lower_kw in (r.get("ReportID", "") or "").lower()
+            or (r.get("Nama") and lower_kw in r.get("Nama", "").lower())
+            or (r.get("NIM") and lower_kw in (r.get("NIM") or "").lower())
+            or (r.get("Jenis") and lower_kw in r.get("Jenis", "").lower())
+            or (r.get("Detail") and lower_kw in r.get("Detail", "").lower())):
             hasil.append(r)
     return hasil
 
